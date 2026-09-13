@@ -31,9 +31,48 @@ This repository documents the ongoing development of my personal homelab. The en
 - Installed and configured the QEMU Guest Agent for improved communication between Proxmox and the VM.
 - Created a `clean-install` snapshot to provide a known-good rollback point before future testing.
   
+## Project 1: Pi-hole Network DNS Filtering
+
+Deployed Pi-hole as the first self-hosted service in my homelab to provide network-level DNS filtering and gain hands-on experience with DNS, DHCP, containers, and network configuration.
+
+### Deployment
+
+- Created a Debian 13 LXC container in Proxmox
+- Allocated 1 vCPU, 512 MB RAM, and 8 GB storage
+- Connected the container directly to the LAN through the Proxmox `vmbr0` bridge
+- Configured a DHCP reservation for the Pi-hole server at `192.168.1.220`
+- Installed and configured Pi-hole
+- Configured Cloudflare as the upstream DNS provider with DNSSEC
+- Enabled query logging for DNS traffic visibility
+- Added the StevenBlack Unified Hosts blocklist
+- Generated a gravity database containing approximately 80,000 blocked domains
+
+### Testing
+
+Configured a Windows client to use `192.168.1.220` as its DNS server and verified that DNS requests were being processed by Pi-hole.
+
+Normal DNS resolution was successfully verified:
+
+`google.com` → Successfully resolved through Pi-hole
+
+DNS filtering was then tested using an advertising/tracking domain:
+
+`doubleclick.net` → Returned `0.0.0.0` / `::`, confirming the request was blocked by Pi-hole
+
+### Result
+
+Pi-hole is successfully running as a lightweight LXC service on the Proxmox homelab. DNS filtering was validated from a client system before any network-wide DNS changes were made.
+
+A working-state Proxmox snapshot was created after successful testing.
+
 ## Next Steps
 
-- Begin experimenting with Linux administration on the Ubuntu Server VM.
-- Deploy the first dedicated homelab service.
-- Build an isolated cybersecurity testing network.
-- Add attacker and target virtual machines for security testing.
+- Deploy Pi-hole DNS filtering across the home network
+- Configure and test IPv6 DNS handling with Pi-hole
+- Continue building lightweight self-hosted services using LXC containers
+- Create an isolated virtual network for cybersecurity testing
+- Deploy a Kali Linux attack VM and vulnerable target systems
+- Build a small Windows Active Directory lab
+- Add centralized security monitoring with a SIEM such as Wazuh
+- Explore automated detection and response workflows
+- Plan a future dedicated server for NAS, media hosting, backups, and production self-hosted services
