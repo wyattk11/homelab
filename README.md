@@ -77,13 +77,62 @@ Pi-hole is successfully running as a lightweight LXC service on the Proxmox home
 
 A working-state Proxmox snapshot was created after successful deployment and hardening.
 
+## Project 2: Self-Hosted Vaultwarden Password Manager
+
+Deployed Vaultwarden as a self-hosted password management service to gain hands-on experience with Docker, HTTPS/TLS, reverse proxies, local DNS, SSH administration, and backup procedures.
+
+### Deployment
+
+- Created a Debian 13 LXC container in Proxmox
+- Allocated 1 vCPU, 512 MB RAM, and 8 GB storage
+- Configured a DHCP reservation for the Vaultwarden server at `192.168.1.111`
+- Installed and enabled Docker inside the LXC container
+- Verified container functionality using the Docker `hello-world` image
+- Deployed Vaultwarden using Docker Compose
+- Configured persistent storage to preserve Vaultwarden data across container recreation
+
+### HTTPS and Local DNS
+
+- Deployed Caddy as a reverse proxy in front of Vaultwarden
+- Configured Caddy to provide HTTPS using an internal certificate authority
+- Removed direct LAN exposure of the Vaultwarden container and routed access through Caddy
+- Created a Pi-hole local DNS record mapping `vault.home.arpa` to the Vaultwarden server
+- Installed the Caddy root certificate on a Windows client to establish trust for the internal certificate authority
+- Verified secure access to Vaultwarden at `https://vault.home.arpa`
+
+### SSH Administration and Hardening
+
+- Installed and enabled OpenSSH on the Vaultwarden server
+- Created a dedicated administrative Linux user with sudo privileges
+- Configured Ed25519 public-key authentication using an existing client SSH key
+- Disabled new Vaultwarden account registrations after creating the primary account
+
+### Backup and Recovery Preparation
+
+- Identified `/opt/vaultwarden/data/` as the persistent application data directory
+- Created a consistent backup by stopping Vaultwarden before archiving its persistent data
+- Transferred the backup to a separate Windows system using SCP
+- Verified Vaultwarden successfully restarted after the backup procedure
+- Kept sensitive Vaultwarden backup data separate from the public GitHub repository
+
+### Result
+
+Vaultwarden is successfully running as a Docker container inside a lightweight Proxmox LXC environment. The service is accessible through a local DNS hostname and protected with HTTPS using Caddy as a reverse proxy and internal certificate authority.
+
+The deployment also includes persistent application storage, SSH key-based administration, restricted account registration, and an off-host backup of Vaultwarden data.
+
 ## Next Steps
 
-- Deploy Pi-hole DNS filtering across the home network
-- Continue building lightweight self-hosted services using LXC containers
-- Create an isolated virtual network for cybersecurity testing
-- Deploy a Kali Linux attack VM and vulnerable target systems
-- Build a small Windows Active Directory lab
-- Add centralized security monitoring with a SIEM such as Wazuh
-- Explore automated detection and response workflows
-- Plan a future dedicated server for NAS, media hosting, backups, and production self-hosted services
+- ✅ Deploy Pi-hole for network-level DNS filtering
+- ✅ Configure local DNS using Pi-hole
+- ✅ Deploy Vaultwarden as a self-hosted password manager
+- ✅ Configure Vaultwarden with Docker Compose, HTTPS, and persistent storage
+- ✅ Configure SSH key-based administration for homelab services
+- 🔲 Configure automated backups for critical self-hosted services
+- 🔲 Deploy additional lightweight self-hosted services using LXC and Docker
+- 🔲 Create an isolated virtual network for cybersecurity testing
+- 🔲 Deploy a Kali Linux attack VM and vulnerable target systems
+- 🔲 Build a small Windows Active Directory lab
+- 🔲 Add centralized security monitoring with a SIEM such as Wazuh
+- 🔲 Explore automated detection and response workflows
+- 🔲 Plan a future dedicated server for NAS, media hosting, backups, and production self-hosted services
