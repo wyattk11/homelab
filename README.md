@@ -115,9 +115,23 @@ Deployed Vaultwarden as a self-hosted password management service to gain hands-
 - Verified Vaultwarden successfully restarted after the backup procedure
 - Kept sensitive Vaultwarden backup data separate from the public GitHub repository
 
+### Client Configuration and Password Migration
+
+- Configured a Windows client to trust the Caddy internal certificate authority
+- Configured an iPhone to use Pi-hole for local DNS resolution
+- Installed and trusted the Caddy internal root certificate on iOS
+- Verified secure Vaultwarden access from both Windows and iOS
+- Connected the Bitwarden mobile application to the self-hosted Vaultwarden server
+- Enabled Face ID authentication and password AutoFill on iOS
+- Migrated existing credentials from Brave into Vaultwarden
+- Migrated saved iOS credentials from Apple Passwords into Vaultwarden
+- Retained the original password stores temporarily to validate the migration before removing duplicate credentials
+
 ### Result
 
-Vaultwarden is successfully running as a Docker container inside a lightweight Proxmox LXC environment. The service is accessible through a local DNS hostname and protected with HTTPS using Caddy as a reverse proxy and internal certificate authority.
+Vaultwarden is successfully running as a Docker container inside a lightweight Proxmox LXC environment. The service is accessible through the local `vault.home.arpa` DNS hostname and protected with HTTPS using Caddy as a reverse proxy and internal certificate authority.
+
+Secure access has been validated from both Windows and iOS clients. The Bitwarden mobile application is connected to the self-hosted Vaultwarden instance with Face ID and AutoFill enabled, and existing credentials have been migrated from Brave and Apple Passwords.
 
 The deployment also includes persistent application storage, SSH key-based administration, restricted account registration, and an off-host backup of Vaultwarden data.
 
@@ -127,7 +141,11 @@ The deployment also includes persistent application storage, SSH key-based admin
 - ✅ Configure local DNS using Pi-hole
 - ✅ Deploy Vaultwarden as a self-hosted password manager
 - ✅ Configure Vaultwarden with Docker Compose, HTTPS, and persistent storage
+- ✅ Configure Windows and iOS clients for trusted HTTPS access
+- ✅ Configure Bitwarden mobile access, Face ID, and AutoFill
+- ✅ Migrate existing browser and iOS credentials into Vaultwarden
 - ✅ Configure SSH key-based administration for homelab services
+- 🔲 Configure secure remote access to homelab services using a VPN
 - 🔲 Configure automated backups for critical self-hosted services
 - 🔲 Deploy additional lightweight self-hosted services using LXC and Docker
 - 🔲 Create an isolated virtual network for cybersecurity testing
