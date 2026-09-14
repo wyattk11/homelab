@@ -59,16 +59,27 @@ DNS filtering was then tested using an advertising/tracking domain:
 
 `doubleclick.net` → Returned `0.0.0.0` / `::`, confirming the request was blocked by Pi-hole
 
+### Troubleshooting and SSH Hardening
+
+- Investigated unexpected IPv6 DNS behavior after the Windows client initially bypassed Pi-hole
+- Traced DNS configuration across the Windows client, Proxmox host, LXC container, and router
+- Confirmed the home network currently does not have configured IPv6 Internet connectivity and removed unnecessary client-side IPv6 DNS configuration
+- Created a dedicated administrative Linux user with sudo privileges
+- Installed and enabled OpenSSH for remote administration
+- Configured Ed25519 public-key authentication
+- Disabled SSH password authentication after validating key-based access
+- Disabled direct root SSH login
+- Validated SSH configuration with `sshd -t` before reloading the service
+
 ### Result
 
-Pi-hole is successfully running as a lightweight LXC service on the Proxmox homelab. DNS filtering was validated from a client system before any network-wide DNS changes were made.
+Pi-hole is successfully running as a lightweight LXC service on the Proxmox homelab. DNS resolution and filtering were validated from a Windows client before any network-wide DNS changes were made. Secure remote administration was also configured using SSH key authentication and a dedicated sudo-enabled user.
 
-A working-state Proxmox snapshot was created after successful testing.
+A working-state Proxmox snapshot was created after successful deployment and hardening.
 
 ## Next Steps
 
 - Deploy Pi-hole DNS filtering across the home network
-- Configure and test IPv6 DNS handling with Pi-hole
 - Continue building lightweight self-hosted services using LXC containers
 - Create an isolated virtual network for cybersecurity testing
 - Deploy a Kali Linux attack VM and vulnerable target systems
