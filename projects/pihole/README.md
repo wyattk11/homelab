@@ -38,8 +38,22 @@ DNS filtering was then tested using an advertising/tracking domain:
 - Disabled direct root SSH login
 - Validated SSH configuration with `sshd -t` before reloading the service
 
+### Network-Wide Deployment
+
+After validating Pi-hole on individual clients, the router DHCP configuration was updated to distribute `192.168.1.220` as the DNS server across the home network.
+
+- Configured the router to provide Pi-hole as the DNS server through DHCP
+- Returned previously configured clients to automatic DNS configuration
+- Renewed client network connections and verified `192.168.1.220` was automatically assigned as the DNS server
+- Expanded Pi-hole from individual client testing to network-wide DNS filtering
+- Continued using Pi-hole for local DNS resolution of homelab services such as `vault.home.arpa`
+
+This allows devices joining the home network to automatically use Pi-hole without requiring manual DNS configuration on each client.
+
 ### Result
 
-Pi-hole is successfully running as a lightweight LXC service on the Proxmox homelab. DNS resolution and filtering were validated from a Windows client before any network-wide DNS changes were made. Secure remote administration was also configured using SSH key authentication and a dedicated sudo-enabled user.
+Pi-hole is successfully running as a lightweight LXC service on the Proxmox homelab and now provides network-wide DNS filtering through the router's DHCP configuration.
 
-A working-state Proxmox snapshot was created after successful deployment and hardening.
+In addition to filtering external DNS requests, Pi-hole provides local DNS resolution for other homelab services, including the Vaultwarden deployment. This allows internal services to use consistent hostnames instead of requiring direct IP addresses.
+
+The deployment includes DNS filtering, local DNS, query logging, SSH key-based administration, and integration with other homelab infrastructure.
