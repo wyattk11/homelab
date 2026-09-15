@@ -48,10 +48,24 @@ Deployed Vaultwarden as a self-hosted password management service to gain hands-
 - Migrated saved iOS credentials from Apple Passwords into Vaultwarden
 - Retained the original password stores temporarily to validate the migration before removing duplicate credentials
 
+### Secure Remote Access
+
+Remote access to Vaultwarden was configured using a dedicated Tailscale subnet router rather than exposing the service directly to the public Internet.
+
+- Connected an iPhone to the private Tailscale network
+- Configured a Tailscale subnet router to provide access to the `192.168.1.0/24` home network
+- Configured split DNS for the `home.arpa` domain using Pi-hole
+- Verified that `vault.home.arpa` resolves correctly while connected remotely
+- Tested Vaultwarden access over cellular with Wi-Fi disabled
+- Verified that the existing HTTPS configuration remains trusted remotely
+- Avoided router port forwarding or direct public exposure of Vaultwarden
+
+Vaultwarden can now be accessed using the same `https://vault.home.arpa` address both locally and remotely through Tailscale.
+
 ### Result
 
-Vaultwarden is successfully running as a Docker container inside a lightweight Proxmox LXC environment. The service is accessible through the local `vault.home.arpa` DNS hostname and protected with HTTPS using Caddy as a reverse proxy and internal certificate authority.
+Vaultwarden is successfully running as a Docker container inside a lightweight Proxmox LXC environment. The service uses Caddy as an HTTPS reverse proxy, Pi-hole for local DNS resolution, and persistent Docker storage for application data.
 
-Secure access has been validated from both Windows and iOS clients. The Bitwarden mobile application is connected to the self-hosted Vaultwarden instance with Face ID and AutoFill enabled, and existing credentials have been migrated from Brave and Apple Passwords.
+Secure access has been validated from both Windows and iOS clients. Existing credentials were migrated from Brave and Apple Passwords, and the Bitwarden mobile application is configured with Face ID and AutoFill.
 
-The deployment also includes persistent application storage, SSH key-based administration, restricted account registration, and an off-host backup of Vaultwarden data.
+Remote access is provided through an authenticated Tailscale connection without exposing Vaultwarden directly to the public Internet. The deployment also includes SSH key-based administration, restricted account registration, and an off-host backup of Vaultwarden data.
