@@ -50,6 +50,16 @@ After validating Pi-hole on individual clients, the router DHCP configuration wa
 
 This allows devices joining the home network to automatically use Pi-hole without requiring manual DNS configuration on each client.
 
+### Network-Wide Troubleshooting
+
+After deploying Pi-hole as the network-wide DNS server, an iPhone connected to the network experienced Wi-Fi connectivity but was unable to access the Internet, while other devices continued working normally.
+
+I verified that the device received a valid DHCP configuration, including an IP address within the `192.168.1.0/24` network, the `192.168.1.1` default gateway, and `192.168.1.220` as its DNS server.
+
+Further investigation showed that DNS requests on the iPhone were being routed through iCloud Private Relay. Disabling **Limit IP Address Tracking** for the home Wi-Fi network disabled Private Relay for that network and immediately restored connectivity.
+
+This provided practical experience troubleshooting a client-specific network issue by verifying DHCP, gateway, DNS, local connectivity, and client configuration individually rather than assuming the DNS server itself was unavailable.
+
 ### Result
 
 Pi-hole is successfully running as a lightweight LXC service on the Proxmox homelab and now provides network-wide DNS filtering through the router's DHCP configuration.
