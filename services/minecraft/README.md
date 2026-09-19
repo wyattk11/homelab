@@ -114,6 +114,24 @@ The modpack's internal automatic restart behavior was disabled so process manage
 
 After deployment, the SSH session was closed and the Minecraft client successfully remained connected to the server, confirming that the service was operating independently.
 
+## Remote Access
+
+Remote multiplayer access was configured using a Playit tunnel rather than exposing the Minecraft server directly through router port forwarding.
+
+The Playit agent runs directly on the Minecraft VM and creates an outbound tunnel between the server and Playit's network. Incoming Minecraft connections are forwarded through the tunnel to the server's local `127.0.0.1:25565` endpoint.
+
+This configuration provides:
+
+- Remote access for players outside the local network
+- No inbound router port forwarding
+- No requirement for remote players to install VPN software
+- Continued use of the Minecraft whitelist for player access control
+- Separation between the public Minecraft endpoint and the home network's public IP address
+
+The Playit agent is configured as a systemd service and starts automatically with the Minecraft VM alongside the Minecraft server.
+
+Remote connectivity was tested successfully using the public tunnel endpoint before providing access to additional players.
+
 ## Testing and Results
 
 The completed deployment was tested by connecting from a separate Windows gaming PC on the local network.
@@ -129,27 +147,33 @@ The following functionality was successfully verified:
 - Modded gameplay operated without noticeable lag
 - Minecraft continued running after the administrative SSH session was closed
 - systemd successfully managed the server process
+- Remote Minecraft connectivity successfully tested through the Playit tunnel
+- External access provided without configuring inbound router port forwarding
 
 ## Current Architecture
-
-    Proxmox Host
+```
+    Internet
         |
-        |-- VM 104 - Minecraft Server
+        |-- Playit Public Endpoint
                 |
-                |-- Ubuntu Server 26.04
-                |-- OpenJDK 21
-                |-- Better Fantasy Multiverse v1.4
-                |-- NeoForge 21.1.247
-                |-- systemd Minecraft Service
-                |
-                +-- 192.168.1.145:25565
+                |-- Outbound Playit Tunnel
                         |
-                        +-- Local Minecraft Clients
-
+                        |-- VM 104 - Minecraft Server
+                                |
+                                |-- Ubuntu Server 26.04
+                                |-- OpenJDK 21
+                                |-- Better Fantasy Multiverse v1.4
+                                |-- NeoForge 21.1.247
+                                |-- Minecraft systemd Service
+                                |-- Playit systemd Service
+                                |
+                                +-- Minecraft :25565
+                                      |
+                                      |-- Local Network Clients
+                                      +-- Remote Players via Playit
+```
 ## Future Improvements
 
-- Configure secure access for remote players outside the home network
-- Test remote multiplayer connectivity
 - Implement automated Minecraft world backups
 - Add backup rotation and recovery testing
 - Evaluate server performance with multiple simultaneous players
