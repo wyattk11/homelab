@@ -140,6 +140,14 @@ Home network isolation:
 
 No responses were received, confirming that the firewall rule prevents the cyber range from accessing the primary home network.
 
+## Management Access
+
+SSH access to the homelab was updated after migrating to a new desktop system.
+
+- Restored SSH key-based authentication
+- Added SSH aliases for Proxmox, Pi-hole, CraftLab, Vaultwarden, and Tailscale
+- Verified passwordless key authentication to configured services
+
 ## Future Use
 
 The isolated range will serve as the foundation for future cybersecurity projects, including:
