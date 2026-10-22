@@ -4,9 +4,29 @@ Deployed a dedicated modded Minecraft server in my Proxmox homelab to gain addit
 
 The server currently hosts **Better Fantasy Multiverse v1.4** using NeoForge and is accessible to clients on the local network.
 
-## Deployment
+## Original Better Fantasy Deployment
 
 Created a dedicated Ubuntu Server virtual machine in Proxmox for hosting Minecraft.
+
+## ATM10 Deployment — Ryzen Proxmox Host
+
+Deployed a second modded Minecraft server on my new Ryzen-based Proxmox host, building on the experience gained from my original Better Fantasy deployment.
+
+This deployment uses **All the Mods 10 (ATM10) v8.2** and includes:
+
+- Debian 13 VM with 6 vCPU, 12 GB RAM, and 100 GB storage
+- OpenJDK 21 with a 9 GB maximum Java heap
+- SSH key authentication and hardened SSH configuration
+- Proxmox firewall rules restricting SSH, Minecraft, and RCON access
+- Dedicated systemd services for Minecraft and Playit
+- RCON-based administration and graceful shutdowns
+- Whitelist management without granting in-game operator permissions
+- Automated daily world backups with seven-day retention
+- Proxmox snapshot for recovery
+
+The server is accessible locally at `192.168.1.109:25565`, with remote multiplayer access provided through Playit without router port forwarding.
+
+The deployment was successfully tested, including local gameplay, remote tunnel configuration, systemd management, and automated backups.
 
 ### Virtual Machine Resources
 
