@@ -20,7 +20,7 @@ Cyber Range (`10.10.10.0/24`)
 ↓  
 Kali Linux  
 ↓  
-Future Lab Systems
+Vulnerable Target Systems
 
 ## Network Isolation
 
@@ -66,16 +66,20 @@ The firewall performs routing and NAT so lab systems can access the Internet whe
 
 ## Firewall Rules
 
-Configured the cyber-range firewall so lab systems can reach the Internet while preventing access to the primary home network.
+Replaced the original two-rule setup with a default-deny policy on the OPNsense LAN interface. Rules are evaluated top to bottom:
 
-Rules are evaluated in order:
-
-1. Block traffic from `LAN network` to `192.168.1.0/24`
-2. Allow IPv4 traffic from `LAN network` to other destinations
+1. Block `LAN net` to `192.168.1.0/24`, so nothing in the range can reach the home network
+2. Allow Kali (`10.10.10.102`) to any destination, for updates and tool downloads
+3. Allow `LAN net` to the firewall itself, for DNS
+4. Allow target-web to any destination (temporary, disabled by default)
+5. Block `LAN net` to any destination, with logging enabled
 
 IPv6 is currently not configured for the cyber range.
 
-This allows systems inside the range to download updates and tools while preventing them from communicating with devices on the primary home LAN.
+- Backed up the OPNsense configuration before changing any rules
+- Kept the temporary target-web rule disabled. It is only enabled to patch or rebuild that VM, then disabled again
+- Logged the final block rule so denied traffic from the targets shows up in the firewall logs
+- Result: Kali keeps Internet access, but the vulnerable targets have no route to the Internet or the home LAN
 
 ## Kali Linux
 
@@ -99,8 +103,38 @@ Connectivity testing confirmed:
 
 For example, Kali successfully reached an external Internet address while traffic to the home router at `192.168.1.1` was blocked by the OPNsense firewall.
 
-```## Current Architecture
+## Target Systems
 
+Deployed two intentionally vulnerable targets on `vmbr1` for scanning and assessment practice.
+
+### target-web (VM 202)
+
+- Ubuntu Server 22.04 cloud image, 1 vCPU, 1 GB RAM, 10 GB storage
+- Static address `10.10.10.50`
+- Built with a cloud-init user-data snippet, which mirrors how the original AWS EC2 version of this target was bootstrapped
+- Verified the cloud image against Ubuntu's published SHA256 checksums before importing it
+- Deliberately weak configuration:
+  - Apache with the default configuration and no security headers
+  - vsftpd with anonymous login enabled
+  - SSH password authentication enabled, with a weak test account
+  - Automatic security updates disabled
+- Installed the QEMU guest agent so the VM can be managed from the Proxmox host without network access
+
+### target-msf (VM 203)
+
+- Metasploitable 2 (Rapid7), 1 vCPU, 512 MB RAM, 8 GB storage
+- Receives its address from OPNsense DHCP
+- Used an emulated e1000 NIC and an IDE disk, because the old kernel does not support VirtIO
+- Verified the download against SourceForge's published MD5 and SHA-1 hashes before importing it
+
+### Snapshots
+
+- Took a `clean-build` snapshot of both targets before any testing
+- Targets can be rolled back to a known-clean state after each exercise
+
+## Current Architecture
+
+```
                     Internet
                        |
                   Home Router
@@ -119,26 +153,44 @@ For example, Kali successfully reached an external Internet address while traffi
                          |
                   10.10.10.0/24
                          |
-                    +---------+
-                    |  Kali   |
-                    | VM 200  |
-                    +---------+
+        +----------------+----------------+
+        |                |                |
+   +---------+     +------------+   +------------+
+   |  Kali   |     | target-web |   | target-msf |
+   | VM 200  |     | VM 202     |   | VM 203     |
+   +---------+     +------------+   +------------+
 ```
+
 ## Verification
 
-The completed environment was tested from Kali Linux.
+Tested isolation from each system after the new rules were applied.
 
-External connectivity:
+From Kali:
+- Internet access worked
+- Traffic to the home LAN (`192.168.1.0/24`) was blocked
 
-`ping 8.8.8.8`
+From target-web, run through the QEMU guest agent:
+- Outbound HTTPS to the Internet was blocked
+- Traffic to a home LAN service was blocked
+- DNS resolution through OPNsense still worked
 
-Successful responses confirmed that OPNsense routing and NAT provide Internet connectivity to the isolated range.
+From target-msf:
+- Checked the OPNsense state table and found no connections leaving the range
+- Confirmed the default-deny rule was logging its blocked traffic
 
-Home network isolation:
+## Troubleshooting: Filtered Port Results
 
-`ping 192.168.1.1`
+During the first Nmap scan from Kali, every closed port on both targets showed as `filtered` instead of `closed`. Metasploitable has no host firewall, so something in the path was dropping the TCP resets that mark a port as closed.
 
-No responses were received, confirming that the firewall rule prevents the cyber range from accessing the primary home network.
+- Captured traffic on the Proxmox host at the target's tap interface. The target was sending RST replies to Kali's probes
+- Captured on Kali's tap interface. The same RST replies never arrived
+- Found the Proxmox firewall checkbox enabled on the NICs of all lab VMs. Traffic between two VMs on the same host passed through Proxmox connection tracking twice, and the second pass treated the RST as an invalid packet and dropped it
+- Confirmed this with the host's conntrack statistics, which showed a large number of invalid packets
+- No Proxmox VM firewall rules were defined for these VMs, and OPNsense already enforces isolation for the range. Disabled the per-NIC Proxmox firewall option on the `vmbr1` interfaces of the four lab VMs
+- Re-ran the scan: closed ports now correctly showed as `closed`
+- Re-ran the isolation tests to confirm OPNsense was still blocking the targets
+
+Takeaway: a `filtered` result does not always mean a firewall in front of the target. It can come from your own infrastructure, and packet captures at both ends show where the traffic is actually lost.
 
 ## Management Access
 
@@ -152,12 +204,13 @@ SSH access to the homelab was updated after migrating to a new desktop system.
 
 The isolated range will serve as the foundation for future cybersecurity projects, including:
 
-- Vulnerable Linux and Windows targets
+- Vulnerable Windows targets
 - Active Directory security labs
 - Network traffic analysis
-- Vulnerability assessment
 - Penetration testing exercises
 - Wazuh security monitoring
 - Detection and response automation
 
-Individual cybersecurity exercises and implementations performed inside this environment will be documented separately under the repository's `projects` directory.
+Individual cybersecurity exercises and implementations performed inside this environment are documented separately under the repository's `projects` directory:
+
+- [Cyber Range Reconnaissance and Vulnerability Assessment](../../projects/cyber-range-recon/README.md)
