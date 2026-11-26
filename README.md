@@ -1,9 +1,17 @@
-
 # Cybersecurity Homelab
 
 This repository documents my personal homelab as I build hands-on experience with cybersecurity, networking, virtualization, Linux administration, and self-hosted infrastructure.
 
 The environment is built around two independent Proxmox VE hosts and is being expanded through individual projects covering infrastructure, self-hosted services, secure remote access, and dedicated cybersecurity testing and monitoring environments.
+
+## Documentation
+
+- [Isolated Cybersecurity Range](infrastructure/cyber-range/README.md)
+- [Cyber Range Reconnaissance and Vulnerability Assessment](projects/cyber-range-recon/README.md)
+- [Pi-hole](services/pihole/README.md)
+- [Vaultwarden](services/vaultwarden/README.md)
+- [Tailscale](services/tailscale/README.md)
+- [Minecraft](services/minecraft/README.md)
 
 ## Current Environment
 
@@ -85,8 +93,16 @@ Both Proxmox hosts operate independently on the same network rather than as a cl
               |   Firewall / Network Isolation
               |
               +-- Kali Linux (VM 200)
+              |      |
+              |   Security Testing
+              |
+              +-- target-web (VM 202)
+              |      |
+              |   Vulnerable Ubuntu Web Server
+              |
+              +-- target-msf (VM 203)
                      |
-                  Security Testing
+                  Metasploitable 2
 
 ## Security Configuration
 
@@ -116,14 +132,17 @@ Implemented additional security controls across both Proxmox hosts to protect ma
 - [x] Create an isolated cybersecurity testing network
 - [x] Deploy Kali Linux and OPNsense firewall
 - [x] Configure network isolation between the cybersecurity range and home LAN
+- [x] Harden cyber range firewall with default-deny egress rules
 - [x] Deploy a modded Minecraft server
 - [x] Deploy second Proxmox virtualization host
 - [x] Configure headless operation on Ryzen server
 - [x] Implement Proxmox host firewall rules
 - [x] Harden SSH authentication on Ryzen server
+- [x] Deploy vulnerable target systems for cybersecurity testing
+- [x] Rebuild capstone reconnaissance and vulnerability assessment in the cyber range
 - [ ] Deploy All the Mods 10 Minecraft server on Ryzen host
 - [ ] Automate backups for critical services
-- [ ] Deploy vulnerable target systems for cybersecurity testing
+- [ ] Build v2 automated scan report generator
 - [ ] Build a Windows Active Directory environment
 - [ ] Deploy centralized security monitoring with Wazuh
 - [ ] Develop automated detection and response workflows
