@@ -62,6 +62,36 @@ Remote access to Vaultwarden was configured using a dedicated Tailscale subnet r
 
 Vaultwarden can now be accessed using the same `https://vault.home.arpa` address both locally and remotely through Tailscale.
 
+### Troubleshooting Client Access
+
+After upgrading my desktop, the Bitwarden clients could no longer connect, and the iPhone app failed to log in with a generic "An error has occurred" message. I worked through the problem one network layer at a time.
+
+- Confirmed the Vaultwarden and Caddy containers were healthy and listening on 443, so the server was not the problem
+- Tested from the desktop:
+  - `vault.home.arpa` resolved correctly through Pi-hole
+  - Port 443 was reachable
+  - The HTTPS request failed with a trust error
+- Found the cause on the desktop: the upgrade had removed the Caddy internal root certificate from the Windows trust store
+- Verified the root certificate's fingerprint against the server, then imported it into the Windows Trusted Root store. Brave and the Bitwarden desktop client connected again
+- Checked the Pi-hole query logs and found that most devices were not using Pi-hole at all:
+  - The desktop worked only because it had Pi-hole set as a static DNS server
+  - The router's DHCP was handing out a different DNS server
+- Set the iPhone's home Wi-Fi DNS manually to Pi-hole and disabled "Limit IP Address Tracking"
+- The Pi-hole logs then showed `vault.home.arpa` resolving for the iPhone, but Safari still reported "server can't be found"
+- Captured the iPhone's traffic on the Proxmox host at the Vaultwarden container's interface:
+  - The TCP handshake completed
+  - Caddy sent its certificate chain
+  - The iPhone immediately replied with a TLS alert and closed the connection
+- Concluded that the iPhone was rejecting the certificate. Safari had then retried `www.vault.home.arpa`, which does not exist, so the browser's error message was misleading
+- Enabled full trust for the Caddy root certificate in iOS Certificate Trust Settings. Installing the profile alone does not enable trust for TLS
+- Verified login and sync on the iPhone, then re-tested over Tailscale on cellular with Wi-Fi off. A packet capture showed the TLS handshake now completing through the subnet router
+
+Lessons learned:
+- Check each layer separately: DNS, network reachability, TLS trust, then the application
+- A packet capture shows where a connection actually fails, even when client error messages are vague or misleading
+- Pi-hole writes its query database about once a minute, so recent queries can be missing for a short time
+- Devices without a hardcoded DNS server depend on the router handing out Pi-hole through DHCP
+
 ### Result
 
 Vaultwarden is successfully running as a Docker container inside a lightweight Proxmox LXC environment. The service uses Caddy as an HTTPS reverse proxy, Pi-hole for local DNS resolution, and persistent Docker storage for application data.
